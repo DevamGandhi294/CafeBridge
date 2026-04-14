@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <div className="flex flex-col leading-none mb-4">
               <span className="font-display text-2xl font-light text-cream-50">
-                Brew<span className="font-semibold italic">noire</span>
+                Cafe<span className="font-semibold italic">Bridge</span>
               </span>
               <span className="font-body text-[10px] tracking-[0.28em] uppercase text-cream-400 mt-0.5">
                 Coffee & Co.
@@ -29,15 +29,15 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm">
                 <MapPin size={14} className="text-coffee-400 mt-0.5 flex-shrink-0" />
-                <span>42 Artisan Lane, Soho<br />London, W1D 3QX</span>
+                <span>Surat<br />India</span>
               </li>
               <li className="flex items-center gap-3 text-sm">
                 <Clock size={14} className="text-coffee-400 flex-shrink-0" />
-                <span>Mon–Fri: 7am – 8pm<br />Sat–Sun: 8am – 9pm</span>
+                <span>Mon–Fri: 11am – 11pm<br />Sat–Sun: 11am – 1am</span>
               </li>
               <li className="flex items-center gap-3 text-sm">
                 <Phone size={14} className="text-coffee-400 flex-shrink-0" />
-                <span>+44 20 7123 4567</span>
+                <span>+91 7862949437</span>
               </li>
             </ul>
           </div>
@@ -59,9 +59,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <Link to="/admin" className="hover:text-cream-50 transition-colors">
+                {/* <Link to="/admin" className="hover:text-cream-50 transition-colors">
                   Staff Portal
-                </Link>
+                </Link> */}
               </li>
             </ul>
           </div>
@@ -69,7 +69,7 @@ export default function Footer() {
 
         <div className="border-t border-coffee-700 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-body text-coffee-500 text-xs">
-            © 2024 Brewnoire Coffee & Co. All rights reserved.
+            © 2026 CafeBridge Coffee & Co. All rights reserved.
           </p>
           <div className="flex items-center gap-1.5 text-coffee-500 text-xs font-body">
             <Coffee size={12} />

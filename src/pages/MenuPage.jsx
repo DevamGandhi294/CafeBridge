@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { AlertTriangle, Coffee, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Coffee, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useCafeStore, useCartStore } from '../store/cafeStore';
 import MenuCard from '../components/menu/MenuCard';
 import CategoryFilter from '../components/menu/CategoryFilter';
@@ -17,10 +17,22 @@ export default function MenuPage() {
 
   const menuItems = useCafeStore((s) => s.menuItems);
   const tables = useCafeStore((s) => s.tables);
+  const orders = useCafeStore((s) => s.orders);
   const table = tables.find((t) => t.number === tableNumber);
   const itemCount = useCartStore((s) => s.getItemCount(tableNumber));
 
-  const isOccupied = table?.status === 'occupied';
+  // Derive status from the latest active order to avoid stale table.status.
+  const linkedOrder = table?.currentOrderId ? orders.find((o) => o.id === table.currentOrderId) : null;
+  const hasLinkedActiveOrder = linkedOrder && ['ordering', 'occupied'].includes(linkedOrder.status);
+  const fallbackActiveOrder = [...orders]
+    .filter((o) => o.tableNumber === tableNumber && ['ordering', 'occupied'].includes(o.status))
+    .sort((a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime())[0];
+  const currentActiveOrder = hasLinkedActiveOrder ? linkedOrder : fallbackActiveOrder;
+
+  // Block ordering if table has ANY active order (ordering OR occupied)
+  const isOccupied = currentActiveOrder?.status === 'occupied';
+  const isOrdering = currentActiveOrder?.status === 'ordering' || (!currentActiveOrder && table?.status === 'ordering');
+  const isTableBusy = isOccupied || isOrdering;
   const isValidTable = tableNumber > 0 && !!table;
 
   // Simulate loading
@@ -64,24 +76,22 @@ export default function MenuPage() {
             <div className="flex items-center gap-2">
               {isValidTable && (
                 <span
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-body ${
-                    isOccupied
-                      ? 'bg-red-50 text-red-600 border border-red-200'
-                      : table?.status === 'ordering'
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-body ${isOccupied
+                    ? 'bg-red-50 text-red-600 border border-red-200'
+                    : isOrdering
                       ? 'bg-amber-50 text-amber-600 border border-amber-200'
                       : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      isOccupied
-                        ? 'bg-red-500'
-                        : table?.status === 'ordering'
+                    className={`w-1.5 h-1.5 rounded-full ${isOccupied
+                      ? 'bg-red-500'
+                      : isOrdering
                         ? 'bg-amber-500 animate-pulse'
                         : 'bg-emerald-500'
-                    }`}
+                      }`}
                   />
-                  {isOccupied ? 'Occupied' : table?.status === 'ordering' ? 'Order Placed' : 'Ready to Order'}
+                  {isOccupied ? 'Occupied' : isOrdering ? 'Order Placing' : 'Ready to Order'}
                 </span>
               )}
             </div>
@@ -90,14 +100,20 @@ export default function MenuPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-32">
-        {/* Table Occupied Warning */}
-        {isOccupied && (
-          <div className="mb-6 flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 animate-fade-in">
-            <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
+        {/* Table Order Status Message */}
+        {(isOrdering || isOccupied) && (
+          <div
+            className="mb-6 flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 animate-fade-in"
+          >
+            <Coffee size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-body text-sm font-semibold text-red-700">Table is currently in use</p>
-              <p className="font-body text-xs text-red-600 mt-0.5">
-                This table is occupied. Please wait or ask a staff member for assistance.
+              <p className="font-body text-sm font-semibold text-amber-700">
+                {isOrdering ? 'Your order is being preparing.' : 'Your order has been served.'}
+              </p>
+              <p className="font-body text-xs mt-0.5 text-amber-600">
+                {isOrdering
+                  ? 'Any item do you want to add?'
+                  : 'How is the item taste? Any more item to add?'}
               </p>
             </div>
           </div>
@@ -111,19 +127,6 @@ export default function MenuPage() {
               <p className="font-body text-sm font-semibold text-coffee-700">You're browsing the menu</p>
               <p className="font-body text-xs text-coffee-500 mt-0.5">
                 Scan the QR code at your table to start ordering.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Order placed notification */}
-        {table?.status === 'ordering' && (
-          <div className="mb-6 flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 animate-fade-in">
-            <Coffee size={18} className="text-amber-600 flex-shrink-0 mt-0.5 animate-bounce" />
-            <div>
-              <p className="font-body text-sm font-semibold text-amber-700">Order in progress!</p>
-              <p className="font-body text-xs text-amber-600 mt-0.5">
-                Your order has been received. Our staff will bring it to your table shortly.
               </p>
             </div>
           </div>
@@ -178,7 +181,7 @@ export default function MenuPage() {
       </main>
 
       {/* Cart */}
-      {isValidTable && !isOccupied && <CartPanel tableNumber={tableNumber} />}
+      {isValidTable && !isTableBusy && <CartPanel tableNumber={tableNumber} />}
     </div>
   );
 }

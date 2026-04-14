@@ -17,14 +17,16 @@ export default function App() {
   useEffect(() => {
     // 1. Listen to Menu
     const unsubMenu = onSnapshot(collection(db, 'menu'), (snap) => {
-      setMenuItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setMenuItems(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
     // 2. Listen to Tables (stored as a Map, parsed into Array)
     const unsubTables = onSnapshot(doc(db, 'tables', 'allTables'), (docSnap) => {
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        const tablesArray = Object.values(data).sort((a, b) => a.number - b.number);
+        const data = docSnap.data({ serverTimestamps: 'estimate' });
+        const tablesArray = Object.values(data)
+          .filter((t) => t && typeof t === 'object' && 'number' in t)
+          .sort((a, b) => a.number - b.number);
         setTables(tablesArray);
       } else {
         setTables([]);

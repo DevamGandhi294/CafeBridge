@@ -69,7 +69,7 @@ function FeaturedCard({ item, index }) {
   return (
     <div
       className="card-hover overflow-hidden group cursor-default animate-fade-up"
-      style={{ animationDelay: `${index * 0.08}s` }}
+      style={{ animationDelay: `₹{index * 0.08}s` }}
     >
       <div className="relative h-48 overflow-hidden">
         <img
@@ -89,7 +89,7 @@ function FeaturedCard({ item, index }) {
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className="font-display text-lg font-medium text-coffee-900">{item.name}</h3>
           <span className="font-body text-coffee-700 font-semibold text-sm flex-shrink-0">
-            ${item.price.toFixed(2)}
+            ₹{item.price.toFixed(2)}
           </span>
         </div>
         <p className="font-body text-coffee-500 text-xs leading-relaxed">{item.description}</p>

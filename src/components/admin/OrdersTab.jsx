@@ -44,21 +44,48 @@ export default function OrdersTab() {
       <div>
         <h2 className="font-display text-2xl font-semibold text-coffee-900 mb-1">Orders</h2>
         <p className="font-body text-sm text-coffee-500">
-          {orders.length} total · {orders.filter((o) => ['ordering','occupied'].includes(o.status)).length} active
+          {orders.length} total · {orders.filter((o) => ['ordering', 'occupied'].includes(o.status)).length} active
         </p>
       </div>
+      {/* History Stats */}
+      {(() => {
+        const paid = orders.filter(o => o.status === 'paid');
+        const cancelled = orders.filter(o => o.status === 'cancelled');
+        const revenue = paid.reduce((sum, o) => sum + o.total * 1.08, 0);
+        const avgOrder = paid.length > 0 ? revenue / paid.length : 0;
+        const topItems = {};
+        paid.forEach(o => o.items.forEach(i => {
+          topItems[i.name] = (topItems[i.name] || 0) + i.qty;
+        }));
+        const topItem = Object.entries(topItems).sort((a, b) => b[1] - a[1])[0];
 
+        // return (
+        //   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        //     {[
+        //       { label: 'Total Revenue', value: `₹${revenue.toFixed(2)}`, sub: `${paid.length} paid orders`, color: 'emerald' },
+        //       { label: 'Avg Order Value', value: `₹${avgOrder.toFixed(2)}`, sub: 'per paid order', color: 'blue' },
+        //       { label: 'Cancelled', value: cancelled.length, sub: 'orders cancelled', color: 'red' },
+        //       { label: 'Top Item', value: topItem?.[0] ?? '—', sub: topItem ? `${topItem[1]} sold` : 'no data', color: 'amber' },
+        //     ].map(({ label, value, sub, color }) => (
+        //       <div key={label} className="card p-4">
+        //         <p className={`font-display text-xl font-semibold text-${color}-700 truncate`}>{value}</p>
+        //         <p className="font-body text-sm font-medium text-coffee-700 mt-0.5">{label}</p>
+        //         <p className="font-body text-xs text-coffee-400">{sub}</p>
+        //       </div>
+        //     ))}
+        //   </div>
+        // );
+      })()}
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-body font-medium transition-all duration-200 ${
-              filter === f.id
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-body font-medium transition-all duration-200 ${filter === f.id
                 ? 'bg-coffee-700 text-cream-50'
                 : 'bg-white text-coffee-600 border border-coffee-200 hover:bg-coffee-50'
-            }`}
+              }`}
           >
             {f.label}
             {f.id !== 'all' && (
@@ -232,7 +259,7 @@ function BillModal({ order, onClose }) {
         {/* Bill Header */}
         <div className="bg-coffee-900 text-cream-50 px-6 py-6 text-center">
           <p className="font-display text-2xl font-light mb-0.5">
-            Brew<span className="font-semibold italic">noire</span>
+            Cafe<span className="font-semibold italic">Bridge</span>
           </p>
           <p className="font-body text-[9px] tracking-[0.25em] uppercase text-cream-400">
             42 Artisan Lane · London W1D 3QX
@@ -278,7 +305,7 @@ function BillModal({ order, onClose }) {
         </div>
 
         <div className="px-6 pb-6 text-center">
-          <p className="font-body text-xs text-coffee-400 mb-4">Thank you for visiting Brewnoire ☕</p>
+          <p className="font-body text-xs text-coffee-400 mb-4">Thank you for visiting CafeBridge ☕</p>
           <button
             onClick={onClose}
             className="btn-primary w-full py-3 rounded-xl"

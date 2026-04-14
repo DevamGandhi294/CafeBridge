@@ -22,8 +22,8 @@ export const useCartStore = create(
           const existing = cart.items.find((i) => i.id === item.id);
           const updatedItems = existing
             ? cart.items.map((i) =>
-                i.id === item.id ? { ...i, qty: i.qty + 1 } : i
-              )
+              i.id === item.id ? { ...i, qty: i.qty + 1 } : i
+            )
             : [...cart.items, { ...item, qty: 1 }];
           return {
             tableCarts: {
@@ -92,14 +92,13 @@ export const useCartStore = create(
 
 
 // ─── Admin / Café Store ───────────────────────────────────────────────────────
-// We no longer persist the entire state to localStorage, only the admin credential
 export const useCafeStore = create(
   persist(
     (set, get) => ({
       // ── Auth ──
       isAdminLoggedIn: false,
       login: (id, password) => {
-        if (id === 'admin' && password === 'brewnoire2024') {
+        if (id === 'admin' && password === 'cafebridge') {
           set({ isAdminLoggedIn: true });
           return true;
         }
@@ -121,15 +120,15 @@ export const useCafeStore = create(
         try {
           await addDoc(collection(db, 'menu'), { ...item });
         } catch (error) {
-          console.error("Error adding menu item:", error);
+          console.error('Error adding menu item:', error);
         }
       },
 
       updateMenuItem: async (id, updates) => {
         try {
-           await updateDoc(doc(db, 'menu', id), updates);
+          await updateDoc(doc(db, 'menu', id), updates);
         } catch (error) {
-          console.error("Error updating menu item:", error);
+          console.error('Error updating menu item:', error);
         }
       },
 
@@ -137,18 +136,18 @@ export const useCafeStore = create(
         try {
           await deleteDoc(doc(db, 'menu', id));
         } catch (error) {
-          console.error("Error deleting menu item:", error);
+          console.error('Error deleting menu item:', error);
         }
       },
 
       toggleItemAvailability: async (id) => {
         try {
-          const item = get().menuItems.find(m => m.id === id);
+          const item = get().menuItems.find((m) => m.id === id);
           if (item) {
             await updateDoc(doc(db, 'menu', id), { available: !item.available });
           }
         } catch (error) {
-          console.error("Error toggling item:", error);
+          console.error('Error toggling item:', error);
         }
       },
 
@@ -158,55 +157,72 @@ export const useCafeStore = create(
           const currentTables = get().tables;
           const maxNum = Math.max(...currentTables.map((t) => t.number), 0);
           const newNumber = maxNum + 1;
-          // Note: using object field update to safely add the table
-          await setDoc(doc(db, 'tables', 'allTables'), {
-            [`${newNumber}`]: {
-              id: newNumber,
-              number: newNumber,
-              status: 'empty',
-              currentOrderId: null,
-            }
-          }, { merge: true });
+          await setDoc(
+            doc(db, 'tables', 'allTables'),
+            {
+              [`${newNumber}`]: {
+                id: newNumber,
+                number: newNumber,
+                status: 'empty',
+                currentOrderId: null,
+              },
+            },
+            { merge: true }
+          );
         } catch (error) {
-          console.error("Error adding table:", error);
+          console.error('Error adding table:', error);
         }
       },
 
       removeTable: async (tableNumber) => {
         try {
-          // You could delete a field using deleteField() from firestore, but for simplicity
-          // let's fetch the doc state from current tables instead, rebuild, or use updateDoc with deleteField
           const { deleteField } = await import('firebase/firestore');
-          await setDoc(doc(db, 'tables', 'allTables'), {
-             [`${tableNumber}`]: deleteField()
-          }, { merge: true });
+          await setDoc(
+            doc(db, 'tables', 'allTables'),
+            { [`${tableNumber}`]: deleteField() },
+            { merge: true }
+          );
         } catch (error) {
-           console.error("Error removing table: ", error);
+          console.error('Error removing table:', error);
         }
       },
 
+      // ✅ FIXED: use nested object instead of dot-notation keys
       updateTableStatus: async (tableNumber, status, orderId = null) => {
-          try {
-            const table = get().tables.find(t => t.number === tableNumber);
-            const newOrderId = orderId !== null ? orderId : table?.currentOrderId;
-            
-            await setDoc(doc(db, 'tables', 'allTables'), {
-              [`${tableNumber}.status`]: status,
-              [`${tableNumber}.currentOrderId`]: newOrderId,
-            }, { merge: true });
-          } catch(e) {
-            console.error("Error updating table status:", e);
-          }
+        try {
+          const table = get().tables.find((t) => t.number === tableNumber);
+          const newOrderId = orderId !== null ? orderId : table?.currentOrderId;
+
+          await setDoc(
+            doc(db, 'tables', 'allTables'),
+            {
+              [`${tableNumber}`]: {
+                status: status,
+                currentOrderId: newOrderId,
+              },
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.error('Error updating table status:', e);
+        }
       },
 
+      // ✅ FIXED: use nested object instead of dot-notation keys
       resetTable: async (tableNumber) => {
         try {
-           await setDoc(doc(db, 'tables', 'allTables'), {
-              [`${tableNumber}.status`]: 'empty',
-              [`${tableNumber}.currentOrderId`]: null,
-            }, { merge: true });
-        } catch(e) {
-           console.error("Error resetting table:", e);
+          await setDoc(
+            doc(db, 'tables', 'allTables'),
+            {
+              [`${tableNumber}`]: {
+                status: 'empty',
+                currentOrderId: null,
+              },
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.error('Error resetting table:', e);
         }
       },
 
@@ -215,6 +231,7 @@ export const useCafeStore = create(
 
       // ── Orders ──
 
+      // ✅ FIXED: use nested object instead of dot-notation keys
       placeOrder: async (tableNumber, items, total) => {
         try {
           const orderPayload = {
@@ -228,44 +245,65 @@ export const useCafeStore = create(
           const orderRef = await addDoc(collection(db, 'orders'), orderPayload);
           const orderId = orderRef.id;
 
-          // Update table locally in Firestore
-          await setDoc(doc(db, 'tables', 'allTables'), {
-             [`${tableNumber}.status`]: 'ordering',
-             [`${tableNumber}.currentOrderId`]: orderId,
-          }, { merge: true });
+          // ✅ FIXED: nested object so Firestore updates correctly
+          await setDoc(
+            doc(db, 'tables', 'allTables'),
+            {
+                [`${tableNumber}`]: {
+                status: 'occupied',
+                currentOrderId: orderId,
+              },
+            },
+            { merge: true }
+          );
 
           return orderId;
         } catch (error) {
-           console.error("Error placing order:", error);
-           return null;
+          console.error('Error placing order:', error);
+          return null;
         }
       },
 
+      // ✅ FIXED: use nested object instead of dot-notation keys
       updateOrderStatus: async (orderId, status) => {
         try {
-           const updates = { status };
-           if (status === 'paid') {
-              updates.paidAt = new Date().toISOString();
-           }
-           await updateDoc(doc(db, 'orders', orderId), updates);
+          const updates = { status };
+          if (status === 'paid') {
+            updates.paidAt = new Date().toISOString();
+          }
+          await updateDoc(doc(db, 'orders', orderId), updates);
 
-           // Also lookup the order locally to update the table
-           const order = get().orders.find(o => o.id === orderId);
-           if (order) {
-               const tableNum = order.tableNumber;
-               if (status === 'paid' || status === 'cancelled') {
-                  await setDoc(doc(db, 'tables', 'allTables'), {
-                     [`${tableNum}.status`]: 'empty',
-                     [`${tableNum}.currentOrderId`]: null,
-                   }, { merge: true });
-               } else if (status === 'occupied') {
-                  await setDoc(doc(db, 'tables', 'allTables'), {
-                     [`${tableNum}.status`]: 'occupied',
-                  }, { merge: true });
-              }
-           }
-        } catch(e) {
-           console.error("Error changing status:", e);
+          const order = get().orders.find((o) => o.id === orderId);
+          if (order) {
+            const tableNum = order.tableNumber;
+
+            if (status === 'paid' || status === 'cancelled') {
+              // ✅ FIXED: nested object
+              await setDoc(
+                doc(db, 'tables', 'allTables'),
+                {
+                  [`${tableNum}`]: {
+                    status: 'empty',
+                    currentOrderId: null,
+                  },
+                },
+                { merge: true }
+              );
+            } else if (status === 'occupied') {
+              // ✅ FIXED: nested object
+              await setDoc(
+                doc(db, 'tables', 'allTables'),
+                {
+                  [`${tableNum}`]: {
+                    status: 'occupied',
+                  },
+                },
+                { merge: true }
+              );
+            }
+          }
+        } catch (e) {
+          console.error('Error changing status:', e);
         }
       },
 
@@ -273,9 +311,7 @@ export const useCafeStore = create(
         get().orders.filter((o) => o.tableNumber === tableNumber),
 
       getActiveOrders: () =>
-        get().orders.filter((o) =>
-          ['ordering', 'occupied'].includes(o.status)
-        ),
+        get().orders.filter((o) => ['ordering', 'occupied'].includes(o.status)),
     }),
     {
       name: 'brewnoire-cafe',

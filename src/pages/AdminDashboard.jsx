@@ -45,7 +45,7 @@ export default function AdminDashboard() {
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <span className="section-label">Brewnoire Admin</span>
+              <span className="section-label">CafeBridge Admin</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">

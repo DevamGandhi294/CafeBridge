@@ -33,7 +33,7 @@ export default function HeroSection() {
         <nav className="flex items-center justify-between px-6 md:px-12 pt-8">
           <div className="flex flex-col leading-none">
             <span className="font-display text-2xl font-light tracking-wide text-cream-50">
-              Brew<span className="font-semibold italic">noire</span>
+              Cafe<span className="font-semibold italic">Bridge</span>
             </span>
             <span className="font-body text-[10px] tracking-[0.28em] uppercase text-cream-300 mt-0.5">
               Coffee & Co.
@@ -60,7 +60,7 @@ export default function HeroSection() {
           <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cream-50/10 border border-cream-100/20 text-cream-200 font-body text-xs tracking-widest uppercase mb-8 backdrop-blur-sm">
               <Coffee size={12} />
-              Est. 2018 · Artisan Coffee House
+              Est. 2024 · Artisan Coffee House
             </span>
           </div>
 

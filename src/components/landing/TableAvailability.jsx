@@ -3,7 +3,21 @@ import TableStatusBadge from '../ui/TableStatusBadge';
 
 export default function TableAvailability() {
   const tables = useCafeStore((s) => s.tables);
-  const available = tables.filter((t) => t.status === 'empty').length;
+  const orders = useCafeStore((s) => s.orders);
+  const activeTableNumbers = new Set(
+    orders
+      .filter((o) => ['ordering', 'occupied'].includes(o.status))
+      .map((o) => o.tableNumber)
+  );
+
+  const getEffectiveTableStatus = (table) => {
+    if (activeTableNumbers.has(table.number) && table.status === 'empty') {
+      return 'occupied';
+    }
+    return table.status;
+  };
+
+  const available = tables.filter((t) => getEffectiveTableStatus(t) === 'empty').length;
 
   return (
     <section className="py-16 md:py-20 px-6 md:px-12 bg-cream-50">
@@ -29,32 +43,35 @@ export default function TableAvailability() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {tables.map((table) => (
-            <div
-              key={table.id}
-              className={`card p-4 text-center transition-all duration-300 ${
-                table.status === 'empty'
-                  ? 'border-emerald-200/60 hover:border-emerald-300'
-                  : table.status === 'ordering'
-                  ? 'border-amber-200/60'
-                  : 'border-red-200/60'
-              }`}
-            >
+          {tables.map((table) => {
+            const tableStatus = getEffectiveTableStatus(table);
+            return (
               <div
-                className={`w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-lg font-display font-semibold ${
-                  table.status === 'empty'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : table.status === 'ordering'
-                    ? 'bg-amber-50 text-amber-700'
-                    : 'bg-red-50 text-red-600'
+                key={table.id}
+                className={`card p-4 text-center transition-all duration-300 ${
+                  tableStatus === 'empty'
+                    ? 'border-emerald-200/60 hover:border-emerald-300'
+                    : tableStatus === 'ordering'
+                    ? 'border-amber-200/60'
+                    : 'border-red-200/60'
                 }`}
               >
-                {table.number}
+                <div
+                  className={`w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-lg font-display font-semibold ${
+                    tableStatus === 'empty'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : tableStatus === 'ordering'
+                      ? 'bg-amber-50 text-amber-700'
+                      : 'bg-red-50 text-red-600'
+                  }`}
+                >
+                  {table.number}
+                </div>
+                <p className="font-body text-xs text-coffee-500 mb-1.5">Table</p>
+                <TableStatusBadge status={tableStatus} />
               </div>
-              <p className="font-body text-xs text-coffee-500 mb-1.5">Table</p>
-              <TableStatusBadge status={table.status} />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
         <div className="relative z-10">
           <div className="flex flex-col leading-none">
             <span className="font-display text-3xl font-light text-cream-50">
-              Brew<span className="font-semibold italic">noire</span>
+              Cafe<span className="font-semibold italic">Bridge</span>
             </span>
             <span className="font-body text-[10px] tracking-[0.28em] uppercase text-cream-300/80 mt-0.5">
               Staff Portal
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
               <Coffee size={18} className="text-caramel-300" />
             </div>
             <div>
-              <p className="font-body text-cream-200 text-sm font-medium">Brewnoire Admin</p>
+              <p className="font-body text-cream-200 text-sm font-medium">CafeBridge Admin</p>
               <p className="font-body text-cream-400 text-xs">Café Management System</p>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
           {/* Mobile logo */}
           <div className="flex flex-col leading-none mb-10 lg:hidden">
             <span className="font-display text-2xl font-light text-coffee-900">
-              Brew<span className="font-semibold italic">noire</span>
+              Cafe<span className="font-semibold italic">Bridge</span>
             </span>
             <span className="font-body text-[10px] tracking-[0.28em] uppercase text-coffee-500 mt-0.5">
               Staff Portal
@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
           {/* Demo hint */}
           <div className="mb-6 p-3 rounded-xl bg-coffee-50 border border-coffee-200">
             <p className="font-body text-xs text-coffee-600">
-              <span className="font-semibold">Demo credentials:</span> admin / brewnoire2024
+              <span className="font-semibold">Demo credentials:</span> admin / cafebridge
             </p>
           </div>
 

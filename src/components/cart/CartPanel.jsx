@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingBag, X, Plus, Minus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { ShoppingBag, X, Plus, Minus, Trash2, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCartStore, useCafeStore } from '../../store/cafeStore';
 
@@ -23,13 +23,25 @@ export default function CartPanel({ tableNumber }) {
   const handlePlaceOrder = async () => {
     if (cart.items.length === 0) return;
     setOrdering(true);
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 800));
-    placeOrder(tableNumber, cart.items, total);
-    clearCart(tableNumber);
-    setIsOpen(false);
-    setOrdering(false);
-    toast.success('Order placed! Preparing your items ☕');
+
+    try {
+      // ✅ FIXED: await placeOrder so Firestore write completes first
+      const orderId = await placeOrder(tableNumber, cart.items, total);
+
+      if (orderId) {
+        // Only clear cart & close panel after Firestore confirms
+        clearCart(tableNumber);
+        setIsOpen(false);
+        toast.success('Order placed! Preparing your items ☕');
+      } else {
+        toast.error('Failed to place order. Please try again.');
+      }
+    } catch (err) {
+      console.error('Order error:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setOrdering(false);
+    }
   };
 
   const tax = total * 0.08;
@@ -92,7 +104,9 @@ export default function CartPanel({ tableNumber }) {
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <ShoppingBag size={40} className="text-coffee-200 mb-4" />
                   <p className="font-display text-lg text-coffee-600">Your cart is empty</p>
-                  <p className="font-body text-xs text-coffee-400 mt-1">Add items from the menu to get started</p>
+                  <p className="font-body text-xs text-coffee-400 mt-1">
+                    Add items from the menu to get started
+                  </p>
                 </div>
               ) : (
                 cart.items.map((item) => (
@@ -149,11 +163,6 @@ export default function CartPanel({ tableNumber }) {
             )}
           </div>
         </div>
-      )}
-
-      {/* Cart toggle when open but collapsed on mobile */}
-      {itemCount > 0 && !isOpen && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30" />
       )}
     </>
   );

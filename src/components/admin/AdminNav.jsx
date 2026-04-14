@@ -28,7 +28,7 @@ export default function AdminNav({ activeTab, onTabChange }) {
         <div className="px-6 pt-7 pb-6 border-b border-coffee-700">
           <div className="flex flex-col leading-none">
             <span className="font-display text-xl font-light text-cream-50">
-              Brew<span className="font-semibold italic">noire</span>
+              Cafe<span className="font-semibold italic">Bridge</span>
             </span>
             <span className="font-body text-[9px] tracking-[0.28em] uppercase text-cream-400 mt-0.5">
               Admin Panel

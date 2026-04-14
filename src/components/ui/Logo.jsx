@@ -13,7 +13,7 @@ export default function Logo({ size = 'md', dark = false }) {
   return (
     <div className="flex flex-col items-start leading-none">
       <span className={`font-display font-light tracking-[0.04em] ${s.text} ${textColor}`}>
-        Brew<span className="font-semibold italic">noire</span>
+        Cafe<span className="font-semibold italic">Bridge</span>
       </span>
       <span className={`font-body tracking-[0.25em] uppercase mt-0.5 ${s.sub} ${subColor}`}>
         Coffee & Co.

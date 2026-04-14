@@ -10,7 +10,7 @@ const STATUS_CONFIG = {
     dot: 'bg-amber-500 animate-pulse',
   },
   occupied: {
-    label: 'Occupied',
+    label: 'Not Available',
     className: 'bg-red-50 text-red-700 border border-red-200',
     dot: 'bg-red-500',
   },
