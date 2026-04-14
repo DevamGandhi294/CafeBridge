@@ -1,38 +1,187 @@
 import { useState } from 'react';
-import { ShoppingBag, X, Plus, Minus, Trash2, ChevronUp } from 'lucide-react';
+import { ShoppingBag, X, Plus, Minus, Trash2, ChevronUp, User, Phone, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCartStore, useCafeStore } from '../../store/cafeStore';
 
+// ─── Phone validation (10-digit Indian) ──────────────────────────────────────
+function isValidPhone(ph) {
+  return /^[6-9]\d{9}$/.test(ph.replace(/\s/g, ''));
+}
+
+// ─── Customer Details Modal ───────────────────────────────────────────────────
+function CustomerModal({ onConfirm, onClose }) {
+  const [name, setName]   = useState('');
+  const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const e = {};
+    if (!name.trim() || name.trim().length < 2) e.name = 'Enter a valid name';
+    if (!isValidPhone(phone)) e.phone = 'Enter a valid 10-digit mobile number';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    await onConfirm({ name: name.trim(), phone: phone.replace(/\s/g, '') });
+    setLoading(false);
+  };
+
+  const formatPhone = (val) => {
+    // Allow only digits, max 10
+    const digits = val.replace(/\D/g, '').slice(0, 10);
+    setPhone(digits);
+    if (errors.phone) setErrors((e) => ({ ...e, phone: undefined }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-coffee-900/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-warm-xl overflow-hidden animate-slide-in-bottom">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-coffee-100 flex items-start justify-between">
+          <div>
+            <h3 className="font-display text-lg font-semibold text-coffee-900">Your Details</h3>
+            <p className="font-body text-xs text-coffee-400 mt-0.5">
+              Required for bill &amp; payment confirmation
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl hover:bg-coffee-100 transition-colors mt-0.5"
+          >
+            <X size={16} className="text-coffee-500" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div className="px-6 py-5 space-y-4">
+          {/* Name */}
+          <div>
+            <label className="font-body text-xs font-medium text-coffee-600 mb-1.5 block">
+              Full Name
+            </label>
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border bg-cream-50 transition-colors
+              ${errors.name ? 'border-red-300 bg-red-50' : 'border-coffee-200 focus-within:border-coffee-400'}`}>
+              <User size={15} className={errors.name ? 'text-red-400' : 'text-coffee-400'} />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors((er) => ({ ...er, name: undefined }));
+                }}
+                placeholder="e.g. Rahul Shah"
+                className="flex-1 bg-transparent font-body text-sm text-coffee-900 placeholder:text-coffee-300 outline-none"
+              />
+            </div>
+            {errors.name && (
+              <p className="font-body text-[11px] text-red-500 mt-1 ml-1">{errors.name}</p>
+            )}
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="font-body text-xs font-medium text-coffee-600 mb-1.5 block">
+              Mobile Number
+            </label>
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border bg-cream-50 transition-colors
+              ${errors.phone ? 'border-red-300 bg-red-50' : 'border-coffee-200 focus-within:border-coffee-400'}`}>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <Phone size={15} className={errors.phone ? 'text-red-400' : 'text-coffee-400'} />
+                <span className="font-body text-sm text-coffee-500">+91</span>
+                <div className="w-px h-4 bg-coffee-200" />
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={phone}
+                onChange={(e) => formatPhone(e.target.value)}
+                placeholder="98765 43210"
+                className="flex-1 bg-transparent font-body text-sm text-coffee-900 placeholder:text-coffee-300 outline-none tracking-wide"
+              />
+            </div>
+            {errors.phone ? (
+              <p className="font-body text-[11px] text-red-500 mt-1 ml-1">{errors.phone}</p>
+            ) : (
+              <p className="font-body text-[11px] text-coffee-400 mt-1 ml-1">
+                Bill &amp; payment link will be sent to this number
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="px-6 pb-6">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn-primary w-full py-3.5 rounded-xl flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-cream-200/40 border-t-cream-50 rounded-full animate-spin" />
+                Confirming...
+              </>
+            ) : (
+              <>
+                Continue to Place Order
+                <ArrowRight size={15} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main CartPanel ───────────────────────────────────────────────────────────
 export default function CartPanel({ tableNumber }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [ordering, setOrdering] = useState(false);
+  const [isOpen, setIsOpen]           = useState(false);
+  const [ordering, setOrdering]       = useState(false);
+  const [showCustomer, setShowCustomer] = useState(false);
 
-  const cart = useCartStore((s) => s.getCart(tableNumber));
-  const itemCount = useCartStore((s) => s.getItemCount(tableNumber));
-  const total = useCartStore((s) => s.getTotal(tableNumber));
-  const updateQty = useCartStore((s) => s.updateQty);
+  const cart       = useCartStore((s) => s.getCart(tableNumber));
+  const itemCount  = useCartStore((s) => s.getItemCount(tableNumber));
+  const total      = useCartStore((s) => s.getTotal(tableNumber));
+  const updateQty  = useCartStore((s) => s.updateQty);
   const removeItem = useCartStore((s) => s.removeItem);
-  const clearCart = useCartStore((s) => s.clearCart);
+  const clearCart  = useCartStore((s) => s.clearCart);
 
-  const placeOrder = useCafeStore((s) => s.placeOrder);
-  const table = useCafeStore((s) => s.tables.find((t) => t.number === tableNumber));
+  const placeOrder    = useCafeStore((s) => s.placeOrder);
+  const saveCustomer  = useCafeStore((s) => s.saveCustomer);
+  const table         = useCafeStore((s) => s.tables.find((t) => t.number === tableNumber));
 
-  const isOccupied = table?.status === 'occupied';
+  const isOccupied     = table?.status === 'occupied';
   const hasActiveOrder = table?.status === 'ordering';
 
-  const handlePlaceOrder = async () => {
+  const tax        = total * 0.08;
+  const grandTotal = total + tax;
+
+  // Step 1: open customer modal
+  const handlePlaceOrderClick = () => {
     if (cart.items.length === 0) return;
+    setShowCustomer(true);
+  };
+
+  // Step 2: customer confirmed → place order + save customer
+  const handleCustomerConfirm = async ({ name, phone }) => {
+    setShowCustomer(false);
     setOrdering(true);
 
     try {
-      // ✅ FIXED: await placeOrder so Firestore write completes first
       const orderId = await placeOrder(tableNumber, cart.items, total);
 
       if (orderId) {
-        // Only clear cart & close panel after Firestore confirms
+        // Save / update customer in Firestore
+        await saveCustomer({ name, phone, orderId });
+
         clearCart(tableNumber);
         setIsOpen(false);
-        toast.success('Order placed! Preparing your items ☕');
+        toast.success(`Order placed! See you soon, ${name} ☕`);
       } else {
         toast.error('Failed to place order. Please try again.');
       }
@@ -43,9 +192,6 @@ export default function CartPanel({ tableNumber }) {
       setOrdering(false);
     }
   };
-
-  const tax = total * 0.08;
-  const grandTotal = total + tax;
 
   if (tableNumber === 0) return null;
 
@@ -145,7 +291,7 @@ export default function CartPanel({ tableNumber }) {
                   </div>
                 ) : (
                   <button
-                    onClick={handlePlaceOrder}
+                    onClick={handlePlaceOrderClick}
                     disabled={ordering || isOccupied}
                     className="btn-primary w-full py-3.5 rounded-xl"
                   >
@@ -164,10 +310,19 @@ export default function CartPanel({ tableNumber }) {
           </div>
         </div>
       )}
+
+      {/* Customer Details Modal — renders above cart drawer */}
+      {showCustomer && (
+        <CustomerModal
+          onConfirm={handleCustomerConfirm}
+          onClose={() => setShowCustomer(false)}
+        />
+      )}
     </>
   );
 }
 
+// ─── Cart Item ────────────────────────────────────────────────────────────────
 function CartItem({ item, tableNumber, onUpdateQty, onRemove }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-2xl bg-cream-50 border border-coffee-100/50 animate-fade-in">

@@ -1,7 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { db } from '../firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  getDoc,
+  arrayUnion,
+} from 'firebase/firestore';
 
 const EMPTY_CART = { items: [], status: 'idle' };
 
@@ -261,6 +270,36 @@ export const useCafeStore = create(
         } catch (error) {
           console.error('Error placing order:', error);
           return null;
+        }
+      },
+      
+      saveCustomer: async ({ name, phone, orderId }) => {
+        try {
+          const customerRef = doc(db, 'customers', phone); // phone as document ID
+          const snap = await getDoc(customerRef);
+       
+          if (snap.exists()) {
+            // Existing customer — update order list + last visit + name (in case they changed it)
+            await updateDoc(customerRef, {
+              name,                                    // update in case name changed
+              orderIds:    arrayUnion(orderId),        // append new order ID
+              lastVisit:   new Date().toISOString(),
+              totalOrders: (snap.data().totalOrders || 0) + 1,
+            });
+          } else {
+            // New customer — create record
+            await setDoc(customerRef, {
+              name,
+              phone,
+              orderIds:    [orderId],
+              firstVisit:  new Date().toISOString(),
+              lastVisit:   new Date().toISOString(),
+              totalOrders: 1,
+            });
+          }
+        } catch (error) {
+          console.error('Error saving customer:', error);
+          // Non-critical — order is already placed, don't throw
         }
       },
 
